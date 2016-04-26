@@ -64,3 +64,83 @@ Ya teniendo el streaming hay que configurar para enviarlo a los servidores de fa
 Ir al botón **Configuración** ➜ **Flujo** ➜ en el Tipo de flujo se selecciona **Personalizar el servidor de retransmisión** configurando la **URL del servidor** y **Clave de transmisión**  ➜ Aplicar ➜ Aceptar ➜ y luego presionar el botón **Iniciar Retransmisión**
 
 ![Facebook Live con HLS Streaming y OBSProject](https://github.com/EstebanFuentealba/facebook-live-streaming/blob/master/assets/img/megastreaming.png)
+
+
+
+Facebook Live para usuarios normales
+-------------
+Para transmitir con ffmpeg , OBSProject o cualquier otro Broadcaster Software se debe dar usar el sdk o api de facebook.
+
+
+### Requerimientos
+1. Ser un facebook developer y tener una [app en facebook](https://developers.facebook.com/) (tener una app id)
+2. Un servidor para subir un archivo html
+
+
+Se debe subir el siguiente archivo al servidor y cambiar el valor del appId
+```html
+<meta charset="utf-8">
+<button id="liveButton">Create Live Stream To Facebook</button>
+<div id="log"></div>
+<script>
+window.fbAsyncInit = function() {
+	FB.init({
+	  appId      : 'XXXXXXXXXXXXXXXXX',
+	  xfbml      : true,
+	  version    : 'v2.4'
+	});
+	document.getElementById('liveButton').onclick = function() {
+	FB.ui({
+	    display: 'popup',
+	    method: 'live_broadcast',
+	    phase: 'create',
+	}, function(response) {
+	    if (!response.id) {
+	      alert('dialog canceled');
+	      return;
+	    }
+	    var matches = response.stream_url.match(/rtmp\:\/\/rtmp-api.facebook.com:80\/rtmp\/(.*)/);
+	    if(matches.length == 2) {
+	        var serverKey = matches[1];
+	        var serverURL = matches[0].replace(serverKey, '')
+	      }
+		  console.log("KEY " , serverKey)
+		  console.log("SERVER " , serverURL)
+
+		  document.getElementById('log').innerHTML = '<div>URL del servidor o de transmisión:<br /> <textarea style="width:100%">'+response.stream_url+'</textarea></div><div>URL del servidor: <br /><textarea style="width:100%">'+serverURL+'</textarea></div><div>Clave de transmisión: <br /><textarea style="width:100%">'+serverKey+'</textarea></div><div><button id="livebroadcast">Ya copié los datos, configure mi Broadcaster y está transmitiendo</button></div>';
+
+		  document.getElementById('livebroadcast').onclick = function() {
+			  FB.ui({
+			      display: 'popup',
+			      method: 'live_broadcast',
+			      phase: 'publish',
+			      broadcast_data: response,
+			    }, function(response) {
+			    alert("video status: \n" + response.status);
+			    });
+		  };
+	  });
+	};
+
+};
+(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/es_ES/sdk.js#xfbml=1&version=v2.4";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script>
+```
+
+
+Presionar el botón **Crear Live Stream en Facebook** , se abre un popup y seleccionar donde se quiere compartir ➜ Siguiente
+
+![Facebook Live con HLS Streaming Usuario Normal](https://github.com/EstebanFuentealba/facebook-live-streaming/blob/master/assets/img/transmitenormal.png)
+
+Copiar los datos necesarios según el software Broadcaster.
+
+Clickear el botón **Ya copié los datos, configure mi Broadcaster y está transmitiendo**
+
+y ya estás transmitiendo a facebook como usuario normal
+![Facebook Live con HLS Streaming Usuario Normal](https://github.com/EstebanFuentealba/facebook-live-streaming/blob/master/assets/img/usuarionormalstreaming.png)
